@@ -6,6 +6,11 @@
 	Licensed under GPL and MIT.
 */
 <%
+
+    params = { :column_amount => 192,
+               :column_width  => 3,
+               :gutter_width  => 5    }
+
 	column_amount = params[:column_amount].to_i
 	column_width = params[:column_width].to_i
 	margin_width = params[:gutter_width].to_i / 2	
@@ -21,7 +26,6 @@
 		right_margin_width = margin_width
 	end
 
-	has_grid("test")
 %>
 
 /* Containers
@@ -49,7 +53,7 @@
 		end
 		i += 1
 	end
--%>
+%>
 <%= string %>
 
 /* Grid >> Children (Alpha ~ First, Omega ~ Last)
@@ -77,7 +81,7 @@
 		temp_width = temp_width + (column_width + gutter_width)
 		i += 1
 	end
--%>
+%>
 <%= string %>
 
 /* Prefix Extra Space >> <%= column_amount %> Columns
@@ -94,7 +98,7 @@
 		temp_width = temp_width + (column_width + gutter_width)
 		i += 1
 	end
--%>
+%>
 <%= string %>
 
 /* Suffix Extra Space >> <%= column_amount %> Columns
@@ -111,7 +115,7 @@
 		temp_width = temp_width + (column_width + gutter_width)
 		i += 1
 	end
--%>
+%>
 <%= string %>
 
 /* Push Space >> <%= column_amount %> Columns
@@ -128,7 +132,7 @@
 		temp_width = temp_width + (column_width + gutter_width)
 		i += 1
 	end
--%>
+%>
 <%= string %>
 
 /* Pull Space >> <%= column_amount %> Columns
@@ -145,7 +149,7 @@
 		temp_width = temp_width + (column_width + gutter_width)
 		i += 1
 	end
--%>
+%>
 <%= string %>
 
 
