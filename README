@@ -54,6 +54,14 @@ CAVEATS
     CSS. I currently have no plan to address that feature.
 
 
+COMMENT
+
+In the latest update, I have re-arranged the CSS slightly, updated the
+comments, and added whitespace for legibility. My view is that I am
+striving for clarity. If the size of this file matters, run it through
+a compressor.
+
+
 [1] http://960.gs/
 [2] https://github.com/sprysoft/variable_grid_generator
 [3] http://www.spry-soft.com/grids

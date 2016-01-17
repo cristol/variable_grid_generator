@@ -23,23 +23,24 @@ if ( grep { ! looks_like_number( $_ ) } @ARGV )
 
 my ( $num_cols, $col_width, $gutter_width ) = @ARGV;
 
-my $margin_width = int( $gutter_width / 2 );
-my $uneven_gutter = $gutter_width % 2;
-
-my $margin_width_l = $margin_width;
-my $margin_width_r = $margin_width;
-$margin_width_l += 1
-  if $uneven_gutter;
+my ( $margin_width_l, $margin_width_r ) = compute_margins( $gutter_width );
 my $unit_width = $col_width + $gutter_width;
 my $overall_width = $num_cols * $unit_width;
 
 print <<"EOT";
 /*
-  Variable Grid System.
-  Learn more ~ http://www.spry-soft.com/grids/
-  Based on 960 Grid System - http://960.gs/
+  Variable Grid System
+  Distributed under the MIT license.
 
-  Licensed under GPL and MIT.
+  Based on 960 Grid System (http://960.gs/)
+  More information at:
+    https://github.com/cristol/variable_grid_generator
+    https://github.com/sprysoft/variable_grid_generator
+
+  This file was generated with the $0 command. Parameters were:
+    Number of columns = $num_cols
+    Width of columns  = $col_width
+    Width of gutters  = $gutter_width
 */
 
 /*
@@ -49,19 +50,18 @@ print <<"EOT";
 
   Note: IE6 works fine without this fix.
 */
-
 body { min-width: ${overall_width}px; }
 
-/* Containers
-----------------------------------------------------------------------------------------------------*/
+/* The entire layout should be done inside the .container class */
 .container_$num_cols {
   width:        ${overall_width}px;
   margin-left:  auto;
   margin-right: auto;
 }
 
-/* Grid >> Global
-----------------------------------------------------------------------------------------------------*/
+/* Use .alpha (first) & .omega (last) on grids nested in grids */
+.alpha { margin-left:  0; }
+.omega { margin-right: 0; }
 
 EOT
 
@@ -75,7 +75,7 @@ $grid_str .= <<"EOT";
   margin-right: ${margin_width_r}px;
 }
 EOT
-print $grid_str, "\n\n\n";
+print $grid_str, "\n";
 
 my $push_pull_str = join ",\n", map { ".push_$_, .pull_$_" } 1 .. $num_cols;
 $push_pull_str .= <<"EOT";
@@ -85,78 +85,74 @@ $push_pull_str .= <<"EOT";
 EOT
 print $push_pull_str;
 
-
 print <<"EOT";
-
-/* Grid >> Children (Alpha ~ First, Omega ~ Last)
-----------------------------------------------------------------------------------------------------*/
-
-.alpha { margin-left:  0; }
-.omega { margin-right: 0; }
 
 /* Grid >> $num_cols Columns
 ----------------------------------------------------------------------------------------------------*/
 
 EOT
 
-my $temp_width;   # Recyclable
+# Recyclable variable
+my $px_map = map_id_to_width( $num_cols, -$gutter_width, $unit_width );
 
-my $container_str = '';
-$temp_width = $col_width;
-for my $i ( 1 .. $num_cols ) {
-  $container_str .= ".container_$num_cols .grid_$i { width: ${temp_width}px; }\n";
-  $temp_width += $unit_width;
-}
-print $container_str;
+class_selectors(
+  $num_cols,
+  $px_map,
+  ".container_$num_cols .grid_%-4d   { width:         %5dpx; }\n",
+  );
 
-simple_spacer_header( 'Prefix Extra Space' );
+$px_map = map_id_to_width( $num_cols - 1, 0, $unit_width );
 
-$temp_width = 0;
-my $px_map = { map { $_ => ( $temp_width += $unit_width ) } 1 .. $num_cols - 1 };
+class_selectors(
+  $num_cols - 1,
+  $px_map,
+  ".container_$num_cols .prefix_%-4d { padding-left:  %5dpx; }\n",
+  );
 
-generate_classes( $num_cols - 1, $px_map, ".container_$num_cols .prefix_%-4d { padding-left:  %5dpx; }\n" );
+class_selectors(
+  $num_cols - 1,
+  $px_map,
+  ".container_$num_cols .suffix_%-4d { padding-right: %5dpx; }\n",
+  );
 
-simple_spacer_header( 'Suffix Extra Space' );
+class_selectors(
+  $num_cols - 1,
+  $px_map,
+  ".container_$num_cols .push_%-4d   { left:          %5dpx; }\n",
+  );
 
-generate_classes( $num_cols - 1, $px_map, ".container_$num_cols .suffix_%-4d { padding-right: %5dpx; }\n" );
+$px_map = map_id_to_width( $num_cols - 1, 0, -$unit_width );
 
-simple_spacer_header( 'Push Space' );
-
-generate_classes( $num_cols - 1, $px_map, ".container_$num_cols .push_%-4d   { left:          %5dpx; }\n" );
-
-simple_spacer_header( 'Pull Space' );
-
-$temp_width = 0;
-$px_map = { map { $_ => ( $temp_width -= $unit_width ) } 1 .. $num_cols - 1 };
-
-generate_classes( $num_cols - 1, $px_map, ".container_$num_cols .pull_%-4d   { left:          %5dpx; }\n" );
+class_selectors(
+  $num_cols - 1,
+  $px_map,
+  ".container_$num_cols .pull_%-4d   { left:          %5dpx; }\n",
+  );
 
 print <<'EOT';
-
-/* Clear Floated Elements
-----------------------------------------------------------------------------------------------------*/
+/* The .grid_* classes are all floated; use the .clear class to end rows */
 
 /* http://sonspring.com/journal/clearing-floats */
 
 .clear {
-  clear: both;
-  display: block;
-  overflow: hidden;
+  clear:      both;
+  display:    block;
+  overflow:   hidden;
   visibility: hidden;
-  width: 0;
-  height: 0;
+  width:      0;
+  height:     0;
 }
 
 /* http://www.yuiblog.com/blog/2010/09/27/clearfix-reloaded-overflowhidden-demystified */
 
 .clearfix:before,
 .clearfix:after {
-  content: '\0020';
-  display: block;
-  overflow: hidden;
+  content:    '\0020';
+  display:    block;
+  overflow:   hidden;
   visibility: hidden;
-  width: 0;
-  height: 0;
+  width:      0;
+  height:     0;
 }
 
 .clearfix:after { clear: both; }
@@ -171,21 +167,27 @@ EOT
 
 exit;
 
-sub generate_classes
+##  ====================================================================
+
+sub compute_margins {
+  my ( $gutter_width ) = @_;
+  my $margin_width = int( $gutter_width / 2 );
+  my $uneven_gutter = $gutter_width % 2;
+  return $margin_width + $uneven_gutter, $margin_width;
+}
+
+sub map_id_to_width {
+  my ( $max_id, $first_width, $increment ) = @_;
+  my $width = $first_width;
+  return { map { $_ => ( $width += $increment ) } 1 .. $max_id };
+}
+
+sub class_selectors
   {
   my ( $max, $px_map, $format ) = @_;
   printf $format, $_, $px_map->{$_}
     for 1 .. $max;
-  }
-
-sub simple_spacer_header {
-  my ( $text ) = @_;
-  print <<"EOT";
-
-/* $text >> $num_cols Columns
-----------------------------------------------------------------------------------------------------*/
-
-EOT
+  print "\n";
   return;
-}
+  }
 
