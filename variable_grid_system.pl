@@ -41,6 +41,17 @@ print <<"EOT";
 	Licensed under GPL and MIT.
 */
 
+/*
+  Forces backgrounds to span full width,
+  even if there is horizontal scrolling.
+  Increase this if your layout is wider.
+
+  Note: IE6 works fine without this fix.
+*/
+
+body {
+  min-width: ${overall_width}px;
+}
 
 /* Containers
 ----------------------------------------------------------------------------------------------------*/
@@ -66,10 +77,19 @@ $grid_str .= <<"EOT";
 \tmargin-right: ${margin_width_r}px;
 }
 EOT
-print $grid_str;
+print $grid_str, "\n\n\n";
+
+my $push_pull_str = join ",\n", map { ".push_$_, .pull_$_" } 1..$num_cols;
+$push_pull_str .= <<"EOT";
+ {
+\tposition:relative;
+}
+EOT
+print $push_pull_str;
 
 
 print <<"EOT";
+
 
 /* Grid >> Children (Alpha ~ First, Omega ~ Last)
 ----------------------------------------------------------------------------------------------------*/
@@ -148,7 +168,7 @@ for my $i ( 1..$num_cols - 1 ) {
 }
 print $pull_str;
 
-print <<"EOT";
+print <<'EOT';
 
 
 
@@ -166,29 +186,29 @@ print <<"EOT";
 	height: 0;
 }
 
-/* http://perishablepress.com/press/2008/02/05/lessons-learned-concerning-the-clearfix-css-hack */
+/* http://www.yuiblog.com/blog/2010/09/27/clearfix-reloaded-overflowhidden-demystified */
 
+.clearfix:before,
 .clearfix:after {
-	clear: both;
-	content: ' ';
+	content: '\0020';
 	display: block;
-	font-size: 0;
-	line-height: 0;
+	overflow: hidden;
 	visibility: hidden;
 	width: 0;
 	height: 0;
 }
 
-.clearfix {
-	display: inline-block;
+.clearfix:after {
+	clear: both;
 }
 
-* html .clearfix {
-	height: 1%;
-}
+/*
+  The following zoom:1 rule is specifically for IE6 + IE7.
+  Move to separate stylesheet if invalid CSS is a problem.
+*/
 
 .clearfix {
-	display: block;
+	zoom: 1;
 }
 EOT
 
