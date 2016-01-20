@@ -59,10 +59,6 @@ body { min-width: ${overall_width}px; }
   margin-right: auto;
 }
 
-/* Use .alpha (first) & .omega (last) on grids nested in grids */
-.alpha { margin-left:  0; }
-.omega { margin-right: 0; }
-
 EOT
 
 my $grid_str = join ",\n", map { ".grid_$_" } 1 .. $num_cols;
@@ -87,8 +83,9 @@ print $push_pull_str;
 
 print <<"EOT";
 
-/* Grid >> $num_cols Columns
-----------------------------------------------------------------------------------------------------*/
+/* Use .alpha (first) & .omega (last) on grids nested in grids */
+.alpha { margin-left:  0; }
+.omega { margin-right: 0; }
 
 EOT
 
